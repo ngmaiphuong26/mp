@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xin chàooo</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #ffdde1, #ee9ca7);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Poppins', sans-serif;
+      text-align: center;
+      color: #000;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    h1 {
+      z-index: 2;
+      font-size: 2.3em;
+      color: #b3004a;
+      text-shadow: 0 0 10px rgba(255,255,255,0.6);
+    }
+
+    #message {
+      font-size: 1.2em;
+      margin-top: 10px;
+      z-index: 2;
+      color: #6b0032;
+      white-space: pre-line;
+    }
+
+    audio {
+      position: absolute;
+      bottom: 15px;
+      left: 15px;
+      z-index: 3;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="hearts"></canvas>
+
+  <h1>Đây là vài dòng tâm sự, có lẽ sẽ hơi dài :<</h1>
+  <div id="message"></div>
+  <script>
+    // ====== CÀI ĐẶT DỄ CHỈNH ======
+    const MAX_HEARTS = 100;       // số lượng tim tối đa
+    const GROWTH_MIN = 0.005;     // tốc độ phóng to chậm nhất
+    const GROWTH_MAX = 0.015;     // tốc độ phóng to nhanh nhất
+    const LIFE_MIN = 100;         // thời gian tồn tại ngắn nhất (frame)
+    const LIFE_MAX = 200;         // thời gian tồn tại dài nhất
+    const SIZE_MIN = 10;          // kích thước nhỏ nhất
+    const SIZE_MAX = 30;          // kích thước lớn nhất
+    // ==============================
+
+    const canvas = document.getElementById("hearts");
+    const ctx = canvas.getContext("2d");
+    let hearts = [];
+    let w, h;
+
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    class Heart {
+      constructor() {
+        this.x = random(0, w);
+        this.y = random(0, h);
+        this.size = random(SIZE_MIN, SIZE_MAX);
+        this.scale = 0;
+        this.growth = random(GROWTH_MIN, GROWTH_MAX);
+        this.opacity = 0;
+        this.life = 0;
+        this.maxLife = random(LIFE_MIN, LIFE_MAX);
+
+        // Mỗi trái tim có một màu cố định
+        const r = 255;
+        const g = random(80, 120);
+        const b = random(100, 150);
+        this.baseColor = { r, g, b };
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(this.scale, this.scale);
+        ctx.beginPath();
+        const s = this.size;
+        const topCurve = s * 0.3;
+        ctx.moveTo(0, topCurve);
+        ctx.bezierCurveTo(0, 0, -s/2, 0, -s/2, topCurve);
+        ctx.bezierCurveTo(-s/2, s/2, 0, s, 0, s);
+        ctx.bezierCurveTo(0, s, s/2, s/2, s/2, topCurve);
+        ctx.bezierCurveTo(s/2, 0, 0, 0, 0, topCurve);
+
+        const { r, g, b } = this.baseColor;
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${this.opacity})`;
+        ctx.fill();
+        ctx.restore();
+      }
+      update() {
+        this.life++;
+        this.scale += this.growth;
+        // Hiện dần rồi mờ dần
+        if (this.life < this.maxLife / 2) {
+          this.opacity = this.life / (this.maxLife / 2);
+        } else {
+          this.opacity = (this.maxLife - this.life) / (this.maxLife / 2);
+        }
+        this.draw();
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, w, h);
+      if (hearts.length < MAX_HEARTS) hearts.push(new Heart());
+      hearts.forEach((heart, i) => {
+        heart.update();
+        if (heart.life > heart.maxLife) hearts.splice(i, 1);
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // --- Hiện chữ dần ---
+    const message = "Xin chàooo\nCậu biết tớ là ai, tớ cũng vậy 😸\nỪmmm... nói ra thì sẽ hơi buồn cười...\nTớ muốn thêm xíu nhạc vô web này mà chưa làm được 😿\nNên tạm thời nhìn nó sẽ hơi chán một xíu...\nNgày hôm nay của cậu thế nào nhỉ?\nNếu hôm nay của cậu là một ngày tuyệt vời, hy vọng ngày nào của cậu cũng sẽ như vậy nhé ✨\nCòn nếu ngày hôm nay của cậu giống như của tớ\nKHÔNG SAO CẢ\nNhững điều mình có thể vượt qua thì ông trời mới cho chúng đến với mình mà\nCỐ LÊN NHÉ 🍀\nCó lẽ khi cậu đọc được những dòng này thì tớ cũng không còn là tớ của bây giờ nữa rồi\nCảm ơn cậu nếu cậu dành thời gian đọc đến tận bây giờ\nCậu cũng tuyệt vời lắm đó, NgocDoanh 🐻";
+    const msgEl = document.getElementById("message");
+    let i = 0;
+    function showText() {
+      if (i < message.length) {
+        msgEl.textContent += message.charAt(i);
+        i++;
+        setTimeout(showText, 70);
+      }
+    }
+    showText();
+  </script>
+</body>
+</html>
